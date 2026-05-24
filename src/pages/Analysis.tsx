@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from '@tanstack/react-router'
-import { blink } from '../blink/client'
+
 import { Page, PageHeader, PageTitle, PageBody, PageActions, Button, Card, CardHeader, CardTitle, CardContent, Badge, StatGroup, Stat, LoadingOverlay } from '@blinkdotnew/ui'
 import { ChevronLeft, Film, Star, TrendingUp, AlertTriangle, ShieldCheck, Zap, Brain, MessageSquare } from 'lucide-react'
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts'
+
+import { getAnalysisReport } from '../lib/api'
 
 export function AnalysisPage() {
   const { id } = useParams({ from: '/analysis/$id' })
@@ -14,47 +16,13 @@ export function AnalysisPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { data: script } = await blink.db.scripts.get(id) as any
-        
-        // Try both camelCase and snake_case for the filter to be safe
-        const { data: analyses } = await blink.db.analyses.list({ 
-          where: { script_id: id } 
-        })
-        
-        const { data: weaknesses } = await blink.db.weaknesses.list({ 
-          where: { script_id: id } 
-        })
-        
-        const { data: recommendations } = await blink.db.recommendations.list({ 
-          where: { script_id: id } 
-        })
-        
-        const { data: emotionalCurve } = await blink.db.emotionalCurve.list({ 
-          where: { script_id: id },
-          orderBy: { timestamp: 'asc' }
-        })
-
-        if (!script || !Array.isArray(analyses) || analyses.length === 0) {
-          console.warn('Analysis not found in DB', { script, analyses })
+        const report = await getAnalysisReport(id)
+        if (!report || !report.script) {
           setData(null)
           setIsLoading(false)
           return
         }
-
-        setData({
-          script,
-          analysis: {
-            ...analyses[0],
-            intelligentScore: analyses[0].intelligentScore || analyses[0].intelligent_score,
-            predictedQuality: analyses[0].predictedQuality || analyses[0].predicted_quality,
-          },
-          weaknesses: (Array.isArray(weaknesses) ? weaknesses : []).map(w => ({
-            ...w,
-            severity: w.severity ?? w.severity_score ?? 50
-          })),
-          recommendations: Array.isArray(recommendations) ? recommendations : [],
-          emotionalCurve: Array.isArray(emotionalCurve) ? emotionalCurve : []
-        })
+        setData(report)
       } catch (error) {
         console.error('Failed to fetch analysis data:', error)
         setData(null)
@@ -65,10 +33,11 @@ export function AnalysisPage() {
     if (id) fetchData()
   }, [id])
 
-  if (isLoading) return <LoadingOverlay />
+  if (isLoading) return <LoadingOverlay loading={true} />
   if (!data || !data.analysis) return <div className="p-20 text-center text-muted-foreground glass m-8 rounded-2xl border-white/10">Analysis report not found or incomplete.</div>
 
-  const { script, analysis, weaknesses, recommendations, emotionalCurve } = data
+  const { script, analysis } = data
+  const { weaknesses, recommendations, emotionalCurve } = analysis || {}
 
   return (
     <Page className="bg-[#050505]">
@@ -86,8 +55,7 @@ export function AnalysisPage() {
           </div>
         </div>
         <PageActions className="gap-3">
-          <Button variant="outline">Export PDF</Button>
-          <Button>Share Report</Button>
+          <Button variant="outline" onClick={() => window.print()}>Export PDF</Button>
         </PageActions>
       </PageHeader>
 

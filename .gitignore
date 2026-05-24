@@ -22,3 +22,20 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Python
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Local Database & Storage
+.env
+.env.production
+.env.development
+storage/sqlite.db
+storage/scripts/*
+storage/embeddings/*
+storage/email_sim.log
+
+

@@ -227,3 +227,33 @@
     transform: translateY(0);
   }
 }
+
+/* Print Styling Rules for Clean PDF Export */
+@media print {
+  aside,
+  .blink-app-shell-sidebar,
+  .md\:hidden,
+  button,
+  .PageActions,
+  a[href="/"] {
+    display: none !important;
+  }
+
+  body,
+  main,
+  #root,
+  .min-h-screen,
+  .Page {
+    background: #050505 !important;
+    color: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .glass {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+}

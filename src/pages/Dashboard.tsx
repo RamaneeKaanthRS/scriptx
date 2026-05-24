@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import { Link } from '@tanstack/react-router'
-import { blink } from '../blink/client'
+
 import { useAuth } from '../hooks/useAuth'
 import { Page, PageHeader, PageTitle, PageBody, PageActions, Button, DataTable, StatGroup, Stat, EmptyState, Persona } from '@blinkdotnew/ui'
 import { Plus, Film, TrendingUp, AlertTriangle, ChevronRight, Activity } from 'lucide-react'
 import { format } from 'date-fns'
+
+import { getDashboardScripts } from '../lib/api'
 
 export function DashboardPage() {
   const { user, logout } = useAuth()
@@ -14,10 +16,7 @@ export function DashboardPage() {
   useEffect(() => {
     const fetchScripts = async () => {
       try {
-        const { data } = await blink.db.scripts.list({
-          where: { user_id: user?.id },
-          orderBy: { created_at: 'desc' }
-        })
+        const data = await getDashboardScripts()
         setScripts(Array.isArray(data) ? data : [])
       } catch (error) {
         console.error('Failed to fetch scripts:', error)

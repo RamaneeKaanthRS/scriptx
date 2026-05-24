@@ -1,0 +1,18 @@
+# Netlify configuration file for Vite React deployment
+
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Redirect rules to prevent 404s on browser refreshes with client-side routing (React Router)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Proxy rule to forward API calls to your hosted production backend API (replace URL when deployed)
+# [[redirects]]
+#   from = "/api/*"
+#   to = "https://your-fastapi-backend-url.onrender.com/api/:splat"
+#   status = 200
+#   force = true

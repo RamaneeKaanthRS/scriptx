@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useAuth } from '../hooks/useAuth'
 import { useScriptAnalysis } from '../hooks/useScriptAnalysis'
-import { Page, PageHeader, PageTitle, PageBody, Button, FileUpload, LoadingOverlay } from '@blinkdotnew/ui'
+import { Page, PageHeader, PageTitle, PageBody, Button, FileUpload, LoadingOverlay, toast } from '@blinkdotnew/ui'
 import { ChevronLeft, Upload as UploadIcon, FileText, CheckCircle, AlertCircle } from 'lucide-react'
 
 export function UploadPage() {
@@ -12,11 +12,18 @@ export function UploadPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
   const handleUpload = async () => {
-    if (!selectedFile || !user) return
-    
+    if (!selectedFile) {
+      toast.error("No file selected.");
+      return;
+    }
+    if (!user) {
+      toast.error("Auth session is missing. Please refresh the page.");
+      return;
+    }
+
     try {
-      const scriptId = await processScript(selectedFile, user.id)
-      navigate({ to: '/analysis/$id', params: { id: scriptId } })
+      const scriptId = await processScript(selectedFile)
+      navigate({ to: '/analysis/$id', params: { id: scriptId } } as any)
     } catch (error: any) {
       console.error('Upload page error:', error)
       toast.error(error?.message || 'Analysis failed. Please try a different file.')
@@ -26,7 +33,7 @@ export function UploadPage() {
   return (
     <Page>
       {isAnalyzing && (
-        <LoadingOverlay />
+        <LoadingOverlay loading={true} />
       )}
 
       <PageHeader className="px-8 py-6 border-b border-white/5">
@@ -58,13 +65,13 @@ export function UploadPage() {
                   <p className="text-xl font-semibold">Drop your screenplay file here</p>
                   <p className="text-muted-foreground">Or click to browse from your computer</p>
                 </div>
-                <input 
-                  type="file" 
-                  className="hidden" 
-                  id="file-upload" 
+                <input
+                  type="file"
+                  className="hidden"
+                  id="file-upload"
                   onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
                 />
-                <Button 
+                <Button
                   onClick={() => document.getElementById('file-upload')?.click()}
                   size="lg"
                   className="px-8"
